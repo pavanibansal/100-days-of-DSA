@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 10000
+#define HASH_SIZE 20011  
+
+typedef struct Node {
+    int key;
+    int value;
+    struct Node* next;
+} Node;
+
+Node* hashMap[HASH_SIZE];
+
+int hashFunc(int key) {
+    int h = key % HASH_SIZE;
+    if (h < 0) h += HASH_SIZE;
+    return h;
+}
+
+int getFreq(int key) {
+    int h = hashFunc(key);
+    Node* curr = hashMap[h];
+    while (curr) {
+        if (curr->key == key) return curr->value;
+        curr = curr->next;
+    }
+    return 0;
+}
+
+void setFreq(int key, int value) {
+    int h = hashFunc(key);
+    Node* curr = hashMap[h];
+    while (curr) {
+        if (curr->key == key) { curr->value = value; return; }
+        curr = curr->next;
+    }
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->key = key;
+    newNode->value = value;
+    newNode->next = hashMap[h];
+    hashMap[h] = newNode;
+}
+
+void freeHashMap() {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        Node* curr = hashMap[i];
+        while (curr) {
+            Node* temp = curr;
+            curr = curr->next;
+            free(temp);
+        }
+        hashMap[i] = NULL;
+    }
+}
+
+int countZeroSumSubarrays(int* arr, int n) {
+    int count = 0;
+    int prefixSum = 0;
+
+    setFreq(0, 1);  // empty prefix
+
+    for (int i = 0; i < n; i++) {
+        prefixSum += arr[i];
+        count += getFreq(prefixSum);
+        setFreq(prefixSum, getFreq(prefixSum) + 1);
+    }
+
+    return count;
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    int arr[MAX_SIZE];
+    for (int i = 0; i < n; i++)
+        scanf("%d", &arr[i]);
+
+    printf("%d\n", countZeroSumSubarrays(arr, n));
+
+    freeHashMap();
+    return 0;
+}
