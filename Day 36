@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node* next;   
+} Node;
+
+typedef struct {
+    Node* front;         
+    Node* rear;        
+    int   size;          
+    int   capacity;   
+} CircularQueue;
+
+CircularQueue* createQueue(int capacity) {
+    CircularQueue* q = (CircularQueue*)malloc(sizeof(CircularQueue));
+    q->front    = NULL;
+    q->rear     = NULL;
+    q->size     = 0;
+    q->capacity = capacity;
+    return q;
+}
+
+int isFull (CircularQueue* q) { return q->size == q->capacity; }
+int isEmpty(CircularQueue* q) { return q->size == 0; }
+
+void enqueue(CircularQueue* q, int value) {
+    if (isFull(q)) { printf("Queue is full\n"); return; }
+
+    Node* node = (Node*)malloc(sizeof(Node));
+    node->data = value;
+    node->next = NULL;
+
+    if (isEmpty(q)) {
+        q->front    = node;
+        q->rear     = node;
+        node->next  = node;         
+    } else {
+        q->rear->next = node;       
+        node->next    = q->front;   
+        q->rear       = node;       
+    }
+    q->size++;
+}
+int dequeue(CircularQueue* q) {
+    if (isEmpty(q)) { printf("Queue is empty\n"); return -1; }
+
+    Node* temp  = q->front;
+    int   value = temp->data;
+
+    if (q->size == 1) {              
+        q->front = NULL;
+        q->rear  = NULL;
+    } else {
+        q->front       = q->front->next;   
+        q->rear->next  = q->front;         
+    }
+
+    free(temp);
+    q->size--;
+    return value;
+}
+void display(CircularQueue* q) {
+    if (isEmpty(q)) { printf("Queue is empty\n"); return; }
+
+    Node* curr = q->front;
+    for (int i = 0; i < q->size; i++) {
+        printf("%d", curr->data);
+        if (i < q->size - 1) printf(" ");
+        curr = curr->next;
+    }
+    printf("\n");
+}
+void freeQueue(CircularQueue* q) {
+    while (!isEmpty(q)) dequeue(q);
+    free(q);
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    CircularQueue* q = createQueue(n);
+
+    for (int i = 0; i < n; i++) {
+        int val; scanf("%d", &val);
+        enqueue(q, val);
+    }
+
+    int m;
+    scanf("%d", &m);
+    for (int i = 0; i < m; i++)
+        dequeue(q);
+
+    display(q);
+    freeQueue(q);
+    return 0;
+}
