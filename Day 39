@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define CAP 1000
+
+typedef struct {
+    int *data, front, back, size, cap;
+} Deque;
+
+Deque* create() {
+    Deque* d = malloc(sizeof(Deque));
+    d->data = malloc(CAP * sizeof(int));
+    d->front = d->back = CAP / 2;
+    d->size = 0; d->cap = CAP;
+    return d;
+}
+
+int empty(Deque* d) { return d->size == 0; }
+int size(Deque* d)  { return d->size; }
+int front(Deque* d) { return empty(d) ? (printf("Empty\n"), -1) : d->data[d->front]; }
+int back(Deque* d)  { return empty(d) ? (printf("Empty\n"), -1) : d->data[d->back - 1]; }
+
+void push_front(Deque* d, int v) { d->data[--d->front] = v; d->size++; }
+void push_back(Deque* d, int v)  { d->data[d->back++]  = v; d->size++; }
+void pop_front(Deque* d) { if (!empty(d)) { d->front++; d->size--; } }
+void pop_back(Deque* d)  { if (!empty(d)) { d->back--;  d->size--; } }
+
+void clear(Deque* d)   { d->front = d->back = CAP / 2; d->size = 0; }
+void swap(Deque* a, Deque* b) { Deque t = *a; *a = *b; *b = t; }
+
+void reverse(Deque* d) {
+    for (int l = d->front, r = d->back - 1; l < r; l++, r--) {
+        int t = d->data[l]; d->data[l] = d->data[r]; d->data[r] = t;
+    }
+}
+
+int cmp(const void* a, const void* b) { return *(int*)a - *(int*)b; }
+void sort_deque(Deque* d) { qsort(d->data + d->front, d->size, sizeof(int), cmp); }
+
+void assign(Deque* d, int n, int v) { clear(d); while (n--) push_back(d, v); }
+
+void resize(Deque* d, int n) {
+    while (d->size > n) pop_back(d);
+    while (d->size < n) push_back(d, 0);
+}
+
+void erase(Deque* d, int i) {
+    if (i < 0 || i >= d->size) return;
+    for (int p = d->front + i; p < d->back - 1; p++) d->data[p] = d->data[p + 1];
+    d->back--; d->size--;
+}
+
+void display(Deque* d) {
+    if (empty(d)) { printf("[ empty ]\n"); return; }
+    printf("[ ");
+    for (int i = d->front; i < d->back; i++) printf("%d ", d->data[i]);
+    printf("]  size=%d\n", d->size);
+}
+
+int main() {
+    Deque* d = create();
+
+    push_back(d, 10); push_back(d, 20); push_back(d, 30);
+    push_front(d, 5);
+    display(d);
+
+    printf("front=%d back=%d size=%d empty=%d\n", front(d), back(d), size(d), empty(d));
+
+    pop_front(d); pop_back(d);
+    display(d);
+
+    push_back(d, 5); push_back(d, 1); push_back(d, 8);
+    sort_deque(d); display(d);
+    reverse(d);    display(d);
+
+    erase(d, 1);   display(d);
+    assign(d, 4, 99); display(d);
+    resize(d, 2);  display(d);
+    resize(d, 5);  display(d);
+
+    Deque* d2 = create();
+    push_back(d2, 7); push_back(d2, 14); push_back(d2, 21);
+    swap(d, d2);
+    display(d); display(d2);
+
+    push_front(d, 0); push_back(d, 28);
+    display(d);
+
+    clear(d);
+    display(d);
+
+    free(d->data); free(d);
+    free(d2->data); free(d2);
+}
