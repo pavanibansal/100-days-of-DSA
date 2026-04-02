@@ -1,0 +1,213 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_SIZE 1000
+typedef struct {
+    int* data;
+    int  front;
+    int  back;
+    int  size;
+    int  capacity;
+} Deque;
+Deque* createDeque(int capacity) {
+    Deque* dq    = (Deque*)malloc(sizeof(Deque));
+    dq->data     = (int*)malloc(capacity * sizeof(int));
+    dq->front    = capacity / 2;  
+    dq->back     = capacity / 2;
+    dq->size     = 0;
+    dq->capacity = capacity;
+    return dq;
+}
+
+int empty(Deque* dq) {
+    return dq->size == 0;
+}
+
+int size(Deque* dq) {
+    return dq->size;
+}
+
+int front(Deque* dq) {
+    if (empty(dq)) { printf("Error: deque is empty\n"); return -1; }
+    return dq->data[dq->front];
+}
+
+int back(Deque* dq) {
+    if (empty(dq)) { printf("Error: deque is empty\n"); return -1; }
+    return dq->data[dq->back - 1];
+}
+
+void push_front(Deque* dq, int val) {
+    if (dq->front == 0) { printf("Error: no space at front\n"); return; }
+    dq->data[--dq->front] = val;
+    dq->size++;
+}
+
+void push_back(Deque* dq, int val) {
+    if (dq->back == dq->capacity) { printf("Error: no space at back\n"); return; }
+    dq->data[dq->back++] = val;
+    dq->size++;
+}
+
+void pop_front(Deque* dq) {
+    if (empty(dq)) { printf("Error: deque is empty\n"); return; }
+    dq->front++;
+    dq->size--;
+}
+
+void pop_back(Deque* dq) {
+    if (empty(dq)) { printf("Error: deque is empty\n"); return; }
+    dq->back--;
+    dq->size--;
+}
+void clear(Deque* dq) {
+    dq->front = dq->capacity / 2;
+    dq->back  = dq->capacity / 2;
+    dq->size  = 0;
+}
+void swap(Deque* a, Deque* b) {
+    Deque temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void reverse(Deque* dq) {
+    int l = dq->front, r = dq->back - 1;
+    while (l < r) {
+        int tmp = dq->data[l];
+        dq->data[l] = dq->data[r];
+        dq->data[r] = tmp;
+        l++; r--;
+    }
+}
+int cmp(const void* a, const void* b) {
+    return (*(int*)a - *(int*)b);
+}
+void sort_deque(Deque* dq) {
+    qsort(dq->data + dq->front, dq->size, sizeof(int), cmp);
+}
+
+// O(n) — assign 'count' copies of 'val'
+void assign(Deque* dq, int count, int val) {
+    clear(dq);
+    for (int i = 0; i < count; i++)
+        push_back(dq, val);
+}
+
+// O(n) — resize: shrink or grow (pad with 0)
+void resize(Deque* dq, int new_size) {
+    while (dq->size > new_size) pop_back(dq);
+    while (dq->size < new_size) push_back(dq, 0);
+}
+
+// O(1) — emplace_front (same as push_front for int)
+void emplace_front(Deque* dq, int val) { push_front(dq, val); }
+
+// O(1) — emplace_back (same as push_back for int)
+void emplace_back(Deque* dq, int val)  { push_back(dq, val);  }
+
+// O(n) — erase element at logical index (0 = front)
+void erase(Deque* dq, int index) {
+    if (index < 0 || index >= dq->size) { printf("Error: index out of range\n"); return; }
+    int pos = dq->front + index;
+    for (int i = pos; i < dq->back - 1; i++)
+        dq->data[i] = dq->data[i + 1];
+    dq->back--;
+    dq->size--;
+}
+
+// ─────────────────────────────────────────
+//  Display Helper
+// ─────────────────────────────────────────
+void display(Deque* dq) {
+    if (empty(dq)) { printf("Deque: [ empty ]\n"); return; }
+    printf("Deque (front→back): [ ");
+    for (int i = dq->front; i < dq->back; i++)
+        printf("%d ", dq->data[i]);
+    printf("]  size=%d\n", dq->size);
+}
+
+void freeDeque(Deque* dq) {
+    free(dq->data);
+    free(dq);
+}
+
+// ─────────────────────────────────────────
+//  Main — Demo of all operations
+// ─────────────────────────────────────────
+int main() {
+    Deque* dq = createDeque(MAX_SIZE);
+
+    printf("=== push_back: 10, 20, 30 ===\n");
+    push_back(dq, 10);
+    push_back(dq, 20);
+    push_back(dq, 30);
+    display(dq);
+
+    printf("\n=== push_front: 5 ===\n");
+    push_front(dq, 5);
+    display(dq);
+
+    printf("\n=== front()=%d  back()=%d  size()=%d  empty()=%d ===\n",
+           front(dq), back(dq), size(dq), empty(dq));
+
+    printf("\n=== pop_front ===\n");
+    pop_front(dq);
+    display(dq);
+
+    printf("\n=== pop_back ===\n");
+    pop_back(dq);
+    display(dq);
+
+    printf("\n=== push_back: 5, 1, 8 then sort ===\n");
+    push_back(dq, 5);
+    push_back(dq, 1);
+    push_back(dq, 8);
+    display(dq);
+    sort_deque(dq);
+    printf("After sort: ");
+    display(dq);
+
+    printf("\n=== reverse ===\n");
+    reverse(dq);
+    display(dq);
+
+    printf("\n=== erase index 1 ===\n");
+    erase(dq, 1);
+    display(dq);
+
+    printf("\n=== assign(4, 99) ===\n");
+    assign(dq, 4, 99);
+    display(dq);
+
+    printf("\n=== resize(2) ===\n");
+    resize(dq, 2);
+    display(dq);
+
+    printf("\n=== resize(5)  — pads with 0 ===\n");
+    resize(dq, 5);
+    display(dq);
+
+    printf("\n=== swap with deque2 [7, 14, 21] ===\n");
+    Deque* dq2 = createDeque(MAX_SIZE);
+    push_back(dq2, 7);
+    push_back(dq2, 14);
+    push_back(dq2, 21);
+    swap(dq, dq2);
+    printf("dq  after swap: "); display(dq);
+    printf("dq2 after swap: "); display(dq2);
+
+    printf("\n=== emplace_front(0)  emplace_back(28) ===\n");
+    emplace_front(dq, 0);
+    emplace_back(dq, 28);
+    display(dq);
+
+    printf("\n=== clear ===\n");
+    clear(dq);
+    display(dq);
+    printf("empty()=%d\n", empty(dq));
+
+    freeDeque(dq);
+    freeDeque(dq2);
+    return 0;
+}
