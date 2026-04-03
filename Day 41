@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+typedef struct {
+    Node* front;
+    Node* rear;
+} Queue;
+
+void enqueue(Queue* q, int val) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = val;
+    newNode->next = NULL;
+    if (q->rear) q->rear->next = newNode;
+    else q->front = newNode;
+    q->rear = newNode;
+}
+
+int dequeue(Queue* q) {
+    if (!q->front) return -1;
+    Node* temp = q->front;
+    int val = temp->data;
+    q->front = q->front->next;
+    if (!q->front) q->rear = NULL;
+    free(temp);
+    return val;
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    Queue q = {NULL, NULL};
+    for (int i = 0; i < n; i++) {
+        char op[10];
+        scanf("%s", op);
+        if (op[0] == 'e') {
+            int val;
+            scanf("%d", &val);
+            enqueue(&q, val);
+        } else {
+            int result = dequeue(&q);
+            printf("%d\n", result);
+        }
+    }
+    return 0;
+}
