@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node {
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val) {
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* buildTree(int arr[], int n) {
+    if (n == 0 || arr[0] == -1) return NULL;
+    struct node* root = create(arr[0]);
+    struct node* queue[n];
+    int front = 0, rear = 0;
+    queue[rear++] = root;
+    int i = 1;
+
+    while (i < n) {
+        struct node* curr = queue[front++];
+
+        if (i < n && arr[i] != -1) {
+            curr->left = create(arr[i]);
+            queue[rear++] = curr->left;
+        }
+        i++;
+
+        if (i < n && arr[i] != -1) {
+            curr->right = create(arr[i]);
+            queue[rear++] = curr->right;
+        }
+        i++;
+    }
+    return root;
+}
+
+struct QNode {
+    struct node* treeNode;
+    int hd;
+};
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    int arr[n];
+    for (int i = 0; i < n; i++)
+        scanf("%d", &arr[i]);
+
+    struct node* root = buildTree(arr, n);
+
+    struct QNode queue[n];
+    int front = 0, rear = 0;
+
+    int hd[n], values[n], size = 0;
+
+    queue[rear++] = (struct QNode){root, 0};
+
+    while (front < rear) {
+        struct QNode temp = queue[front++];
+
+        values[size] = temp.treeNode->data;
+        hd[size] = temp.hd;
+        size++;
+
+        if (temp.treeNode->left)
+            queue[rear++] = (struct QNode){temp.treeNode->left, temp.hd - 1};
+
+        if (temp.treeNode->right)
+            queue[rear++] = (struct QNode){temp.treeNode->right, temp.hd + 1};
+    }
+
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = i + 1; j < size; j++) {
+            if (hd[i] > hd[j]) {
+                int t = hd[i]; hd[i] = hd[j]; hd[j] = t;
+                t = values[i]; values[i] = values[j]; values[j] = t;
+            }
+        }
+    }
+
+    int i = 0;
+    while (i < size) {
+        int curr = hd[i];
+        while (i < size && hd[i] == curr) {
+            printf("%d ", values[i]);
+            i++;
+        }
+        printf("\n");
+    }
+
+    return 0;
+}
