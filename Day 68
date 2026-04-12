@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAXV 100005
+
+// Adjacency list
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Node* adj[MAXV];
+int inDegree[MAXV];
+int queue[MAXV];
+int result[MAXV];
+
+void addEdge(int u, int v) {
+    struct Node* node = (struct Node*)malloc(sizeof(struct Node));
+    node->data = v;
+    node->next = adj[u];
+    adj[u] = node;
+    inDegree[v]++;
+}
+
+void topoSort(int V) {
+    int front = 0, rear = 0;
+    int resSize = 0;
+
+    // Step 1: Push all 0 in-degree nodes into queue
+    for (int i = 0; i < V; i++)
+        if (inDegree[i] == 0)
+            queue[rear++] = i;
+
+    // Step 2: BFS
+    while (front < rear) {
+        int node = queue[front++];
+        result[resSize++] = node;
+
+        // Reduce in-degree of neighbours
+        struct Node* temp = adj[node];
+        while (temp != NULL) {
+            int nbr = temp->data;
+            inDegree[nbr]--;
+            if (inDegree[nbr] == 0)
+                queue[rear++] = nbr;
+            temp = temp->next;
+        }
+    }
+
+    // Cycle check
+    if (resSize != V) {
+        printf("Cycle detected! Not a DAG.\n");
+        return;
+    
+    printf("Topological Order: ");
+    for (int i = 0; i < resSize; i++)
+        printf("%d ", result[i]);
+    printf("\n");
+}
+
+int main() {
+    int V = 6;
+
+    // Initialize
+    memset(adj, 0, sizeof(adj));
+    memset(inDegree, 0, sizeof(inDegree));
+
+    // Edges: 5->2, 5->0, 4->0, 4->1, 2->3, 3->1
+    addEdge(5, 2);
+    addEdge(5, 0);
+    addEdge(4, 0);
+    addEdge(4, 1);
+    addEdge(2, 3);
+    addEdge(3, 1);
+
+    topoSort(V);
+
+    return 0;
+}
