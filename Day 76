@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void dfs(int node, int n, int graph[n + 1][n + 1], int visited[]) {
+    visited[node] = 1;
+
+    for (int i = 1; i <= n; i++) {
+        if (graph[node][i] == 1 && !visited[i]) {
+            dfs(i, n, graph, visited);
+        }
+    }
+}
+
+int main() {
+    int n, m;
+    scanf("%d %d", &n, &m);
+
+    int graph[n + 1][n + 1];
+    int visited[n + 1];
+
+    for (int i = 0; i <= n; i++) {
+        visited[i] = 0;
+        for (int j = 0; j <= n; j++) {
+            graph[i][j] = 0;
+        }
+    }
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        graph[u][v] = 1;
+        graph[v][u] = 1;
+    }
+
+    int components = 0;
+
+    for (int i = 1; i <= n; i++) {
+        if (!visited[i]) {
+            dfs(i, n, graph, visited);
+            components++;
+        }
+    }
+
+    printf("%d\n", components);
+
+    return 0;
+}
