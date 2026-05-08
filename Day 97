@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct {
+    int start;
+    int end;
+} Interval;
+int compare(const void *a, const void *b) {
+    Interval *x = (Interval *)a;
+    Interval *y = (Interval *)b;
+    return x->start - y->start;
+}
+
+typedef struct {
+    int *arr;
+    int size;
+} MinHeap;
+
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void heapifyUp(MinHeap *heap, int index) {
+    while (index > 0) {
+        int parent = (index - 1) / 2;
+
+        if (heap->arr[parent] <= heap->arr[index])
+            break;
+
+        swap(&heap->arr[parent], &heap->arr[index]);
+        index = parent;
+    }
+}
+
+void heapifyDown(MinHeap *heap, int index) {
+    while (1) {
+        int left = 2 * index + 1;
+        int right = 2 * index + 2;
+        int smallest = index;
+
+        if (left < heap->size &&
+            heap->arr[left] < heap->arr[smallest])
+            smallest = left;
+
+        if (right < heap->size &&
+            heap->arr[right] < heap->arr[smallest])
+            smallest = right;
+
+        if (smallest == index)
+            break;
+
+        swap(&heap->arr[index], &heap->arr[smallest]);
+        index = smallest;
+    }
+}
+
+void insertHeap(MinHeap *heap, int value) {
+    heap->arr[heap->size] = value;
+    heap->size++;
+
+    heapifyUp(heap, heap->size - 1);
+}
+
+void removeMin(MinHeap *heap) {
+    if (heap->size == 0)
+        return;
+
+    heap->arr[0] = heap->arr[heap->size - 1];
+    heap->size--;
+
+    heapifyDown(heap, 0);
+}
+
+int getMin(MinHeap *heap) {
+    return heap->arr[0];
+}
+
+int minMeetingRooms(Interval intervals[], int n) {
+    if (n == 0)
+        return 0;
+
+    qsort(intervals, n, sizeof(Interval), compare);
+
+    MinHeap heap;
+    heap.arr = (int *)malloc(n * sizeof(int));
+    heap.size = 0;
+
+    insertHeap(&heap, intervals[0].end);
+
+    for (int i = 1; i < n; i++) {
+
+        if (intervals[i].start >= getMin(&heap)) {
+            removeMin(&heap);
+        }
+
+        insertHeap(&heap, intervals[i].end);
+    }
+
+    int rooms = heap.size;
+
+    free(heap.arr);
+
+    return rooms;
+}
+
+int main() {
+    Interval intervals[] = {
+        {0, 30},
+        {5, 10},
+        {15, 20}
+    };
+
+    int n = sizeof(intervals) / sizeof(intervals[0]);
+
+    printf("Minimum meeting rooms required: %d\n",
+           minMeetingRooms(intervals, n));
+
+    return 0;
+}
